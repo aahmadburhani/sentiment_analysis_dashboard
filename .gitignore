@@ -1,0 +1,9 @@
+# Ignore datasets and cache files
+training.1600000.processed.noemoticon.csv
+processed_sample.csv
+*.ipynb_checkpoints
+__pycache__/
+venv/
+*.log
+.cache/
+.huggingface/
