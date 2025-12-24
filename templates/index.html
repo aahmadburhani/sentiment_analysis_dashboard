@@ -8,21 +8,19 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <!-- Animated theme switch (no stray checkboxes) -->
-  <div class="theme-toggle" aria-hidden="false">
-    <label class="switch" title="Toggle dark / light">
-      <input id="themeToggle" type="checkbox" aria-label="Toggle theme" />
-      <span class="slider">
-        <span class="icon sun">☀️</span>
-        <span class="icon moon">🌙</span>
-      </span>
-    </label>
+  <!-- 🌗 Modern Animated Toggle Switch -->
+  <div class="theme-toggle">
+    <button id="themeButton" class="theme-btn" aria-label="Toggle theme">
+      🌞 Light Mode
+    </button>
   </div>
 
   <main class="container" role="main">
     <header class="hero">
       <h1>🧠 <span>Sentiment Analysis</span></h1>
-      <p class="subtitle">Compare <strong>VADER</strong> and <strong>RoBERTa</strong> sentiment models</p>
+      <p class="subtitle">
+        Compare <strong>VADER</strong> and <strong>RoBERTa</strong> sentiment models
+      </p>
     </header>
 
     <form action="/predict" method="POST" class="form-box" aria-label="Sentiment input">
@@ -40,39 +38,39 @@
       <h3>📊 Predictions:</h3>
 
       <!-- VADER -->
-      <article class="result-card" aria-label="VADER result">
-        <h4>VADER Result: <span class="highlight">{{ vader_label|capitalize }}</span>
+      <article class="result-card">
+        <h4>VADER Result:
+          <span class="highlight">{{ vader_label|capitalize }}</span>
           {% if vader_label == 'positive' %} 😊 {% elif vader_label == 'negative' %} 😞 {% else %} 😐 {% endif %}
         </h4>
-
-        <div class="bar-group" aria-hidden="false">
+        <div class="bar-group">
           <div class="bar positive" style="width: {{ vader_scores.positive * 100 }}%">
-            <span>Positive: {{ "%.3f"|format(vader_scores.positive) }}</span>
+            Positive: {{ "%.3f"|format(vader_scores.positive) }}
           </div>
           <div class="bar neutral" style="width: {{ vader_scores.neutral * 100 }}%">
-            <span>Neutral: {{ "%.3f"|format(vader_scores.neutral) }}</span>
+            Neutral: {{ "%.3f"|format(vader_scores.neutral) }}
           </div>
           <div class="bar negative" style="width: {{ vader_scores.negative * 100 }}%">
-            <span>Negative: {{ "%.3f"|format(vader_scores.negative) }}</span>
+            Negative: {{ "%.3f"|format(vader_scores.negative) }}
           </div>
         </div>
       </article>
 
       <!-- RoBERTa -->
-      <article class="result-card" aria-label="RoBERTa result">
-        <h4>RoBERTa Result: <span class="highlight">{{ roberta_label|capitalize }}</span>
+      <article class="result-card">
+        <h4>RoBERTa Result:
+          <span class="highlight">{{ roberta_label|capitalize }}</span>
           {% if roberta_label == 'positive' %} 😊 {% elif roberta_label == 'negative' %} 😞 {% else %} 😐 {% endif %}
         </h4>
-
-        <div class="bar-group" aria-hidden="false">
+        <div class="bar-group">
           <div class="bar positive" style="width: {{ roberta_scores.positive * 100 }}%">
-            <span>Positive: {{ "%.3f"|format(roberta_scores.positive) }}</span>
+            Positive: {{ "%.3f"|format(roberta_scores.positive) }}
           </div>
           <div class="bar neutral" style="width: {{ roberta_scores.neutral * 100 }}%">
-            <span>Neutral: {{ "%.3f"|format(roberta_scores.neutral) }}</span>
+            Neutral: {{ "%.3f"|format(roberta_scores.neutral) }}
           </div>
           <div class="bar negative" style="width: {{ roberta_scores.negative * 100 }}%">
-            <span>Negative: {{ "%.3f"|format(roberta_scores.negative) }}</span>
+            Negative: {{ "%.3f"|format(roberta_scores.negative) }}
           </div>
         </div>
       </article>
@@ -82,9 +80,7 @@
     {% if metrics %}
     <section class="chart-section">
       <h3 class="chart-title">📈 Model Comparison (Sample 100 Tweets)</h3>
-      <div class="chart-box">
-        <canvas id="metricsChart" width="600" height="320" aria-label="Model comparison chart"></canvas>
-      </div>
+      <canvas id="metricsChart" width="600" height="320"></canvas>
     </section>
     {% endif %}
 
@@ -93,57 +89,72 @@
 
   {% if metrics %}
   <script>
-    // Chart setup with theme-aware colors (updates occur on theme toggles below)
-    const ctx = document.getElementById('metricsChart')?.getContext('2d');
-    let themeIsDark = localStorage.getItem('theme') === 'dark';
-    function chartColors(dark) {
-      return {
-        text: dark ? '#e7e7e7' : '#111111',
-        grid: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
-        vader: dark ? 'rgba(80,180,255,0.9)' : 'rgba(54,162,235,0.8)',
-        roberta: dark ? 'rgba(255,150,175,0.9)' : 'rgba(255,99,132,0.8)'
-      };
-    }
-
+    const ctx = document.getElementById("metricsChart")?.getContext("2d");
+    let chartTheme = localStorage.getItem("theme") === "dark";
+    const chartColors = (dark) => ({
+      text: dark ? "#e0e7ff" : "#0f172a",
+      grid: dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+      vader: dark ? "rgba(100,180,255,0.9)" : "rgba(54,162,235,0.8)",
+      roberta: dark ? "rgba(255,140,160,0.9)" : "rgba(255,99,132,0.8)",
+    });
     let chart;
     if (ctx) {
-      const colors = chartColors(themeIsDark);
+      const c = chartColors(chartTheme);
       chart = new Chart(ctx, {
-        type: 'bar',
+        type: "bar",
         data: {
-          labels: ['Accuracy','Precision','Recall','F1 Score'],
+          labels: ["Accuracy", "Precision", "Recall", "F1 Score"],
           datasets: [
-            { label: 'VADER', data: [{{ metrics.vader.accuracy }}, {{ metrics.vader.precision }}, {{ metrics.vader.recall }}, {{ metrics.vader.f1 }}], backgroundColor: colors.vader, borderRadius: 6 },
-            { label: 'RoBERTa', data: [{{ metrics.roberta.accuracy }}, {{ metrics.roberta.precision }}, {{ metrics.roberta.recall }}, {{ metrics.roberta.f1 }}], backgroundColor: colors.roberta, borderRadius: 6 }
-          ]
+            {
+              label: "VADER",
+              data: [{{ metrics.vader.accuracy }}, {{ metrics.vader.precision }}, {{ metrics.vader.recall }}, {{ metrics.vader.f1 }}],
+              backgroundColor: c.vader,
+              borderRadius: 8,
+            },
+            {
+              label: "RoBERTa",
+              data: [{{ metrics.roberta.accuracy }}, {{ metrics.roberta.precision }}, {{ metrics.roberta.recall }}, {{ metrics.roberta.f1 }}],
+              backgroundColor: c.roberta,
+              borderRadius: 8,
+            },
+          ],
         },
         options: {
-          animation: { duration: 900, easing: 'easeOutCubic' },
+          animation: { duration: 1200 },
           scales: {
-            x: { ticks: { color: colors.text }, grid: { display: false } },
-            y: { beginAtZero: true, max: 1, ticks: { color: colors.text }, grid: { color: colors.grid } }
+            y: { beginAtZero: true, max: 1, ticks: { color: c.text }, grid: { color: c.grid } },
+            x: { ticks: { color: c.text }, grid: { display: false } },
           },
-          plugins: { legend: { labels: { color: colors.text } } }
-        }
+          plugins: { legend: { labels: { color: c.text } } },
+        },
       });
     }
   </script>
   {% endif %}
 
+  <!-- 🌗 Theme Toggle Script -->
   <script>
-    // Theme toggle logic: initializes state, updates body class and chart colors.
+    const themeButton = document.getElementById("themeButton");
     const body = document.body;
-    const toggle = document.getElementById('themeToggle');
-    const saved = localStorage.getItem('theme');
 
-    function applyTheme(isDark) {
-      if (isDark) body.classList.add('dark-mode'); else body.classList.remove('dark-mode');
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    function setTheme(isDark) {
+      if (isDark) {
+        body.classList.add("dark-mode");
+        themeButton.textContent = "🌙 Dark Mode";
+        localStorage.setItem("theme", "dark");
+      } else {
+        body.classList.remove("dark-mode");
+        themeButton.textContent = "🌞 Light Mode";
+        localStorage.setItem("theme", "light");
+      }
 
-      // update chart colors if chart exists
-      if (typeof chart !== 'undefined' && chart) {
-        const colors = (isDark) ? { text:'#e7e7e7', grid:'rgba(255,255,255,0.06)', vader:'rgba(80,180,255,0.9)', roberta:'rgba(255,150,175,0.9)' } :
-                                 { text:'#111111', grid:'rgba(0,0,0,0.06)', vader:'rgba(54,162,235,0.8)', roberta:'rgba(255,99,132,0.8)' };
+      if (typeof chart !== "undefined" && chart) {
+        const colors = {
+          text: isDark ? "#e0e7ff" : "#0f172a",
+          grid: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+          vader: isDark ? "rgba(100,180,255,0.9)" : "rgba(54,162,235,0.8)",
+          roberta: isDark ? "rgba(255,140,160,0.9)" : "rgba(255,99,132,0.8)",
+        };
         chart.options.scales.x.ticks.color = colors.text;
         chart.options.scales.y.ticks.color = colors.text;
         chart.options.scales.y.grid.color = colors.grid;
@@ -154,30 +165,26 @@
       }
     }
 
-    // initialize on load
-    if (saved === 'dark') {
-      toggle.checked = true;
-      applyTheme(true);
-    } else {
-      toggle.checked = false;
-      applyTheme(false);
-    }
+    // Initialize theme from local storage
+    const savedTheme = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    setTheme(savedTheme === "dark" || (savedTheme === null && prefersDark));
 
-    toggle.addEventListener('change', () => {
-      applyTheme(toggle.checked);
+    themeButton.addEventListener("click", () => {
+      const darkNow = body.classList.contains("dark-mode");
+      setTheme(!darkNow);
     });
 
-    // Bar animation (also ensures tiny bars are still visible)
-    window.addEventListener('load', () => {
-      document.querySelectorAll('.bar').forEach((bar, i) => {
-        const style = bar.getAttribute('style') || '';
-        const m = style.match(/width:\s*([\d.]+)%/);
-        const pct = m ? Math.max(parseFloat(m[1]), 4) : 4; // ensure minimum visual width (4%)
-        bar.style.width = '0%';
+    // Animate bars
+    window.addEventListener("load", () => {
+      document.querySelectorAll(".bar").forEach((bar, i) => {
+        const m = bar.getAttribute("style")?.match(/width:\s*([\d.]+)%/);
+        const pct = m ? Math.max(parseFloat(m[1]), 4) : 4;
+        bar.style.width = "0%";
         setTimeout(() => {
-          bar.classList.add('visible');
-          bar.style.width = pct + '%';
-        }, 220 + i * 110);
+          bar.classList.add("visible");
+          bar.style.width = pct + "%";
+        }, 250 + i * 100);
       });
     });
   </script>

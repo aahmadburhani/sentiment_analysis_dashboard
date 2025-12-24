@@ -20,7 +20,7 @@ def preload_model():
 
 CSV_NAME = "training.1600000.processed.noemoticon.csv"
 PROCESSED_CSV = "processed_sample.csv"
-FIRST_RUN_ROWS = 100   # process fewer rows initially for speed
+FIRST_RUN_ROWS = 1000   # process fewer rows initially for speed
 FULL_SIZE = 1000        # cached larger sample for future runs
 
 
